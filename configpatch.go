@@ -88,7 +88,6 @@ func (p *Patcher) Traverse(
 	text := ""
 	var startPos, endPos int
 	pos := 0
-	header := ""
 
 	scanner := bufio.NewScanner(strings.NewReader(p.Data))
 	for scanner.Scan() {
@@ -112,8 +111,6 @@ func (p *Patcher) Traverse(
 		if matched && inPatch {
 			endPos = pos - 1
 
-			fullMatch := match[0]
-
 			h := &Hunk{
 				CommentStart:   p.CommentStart,
 				CommentEnd:     p.CommentEnd,
@@ -122,9 +119,6 @@ func (p *Patcher) Traverse(
 				Text:           patchText,
 				PosFrom:        startPos,
 				PosTo:          endPos,
-				Header:         header,
-				ContentPosFrom: startPos + len(fullMatch) + 1,
-				ContentPosTo:   endPos - len(fullMatch),
 				AsString:       p.Data[startPos : endPos+1],
 				Logger:         p.Logger,
 			}
@@ -139,7 +133,6 @@ func (p *Patcher) Traverse(
 				// start line
 				textCB(p, text)
 				startPos = pos - len(line)
-				header = line
 			}
 			text = ""
 			inPatch = !inPatch
@@ -395,9 +388,6 @@ type Hunk struct {
 	// Once applied, here's text index positions
 	PosFrom        int
 	PosTo          int
-	Header         string
-	ContentPosFrom int
-	ContentPosTo   int
 	AsString       string
 	Logger         *zap.Logger
 	// Comment out configpatch's markers (set by Patcher)
