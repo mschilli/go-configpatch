@@ -56,8 +56,8 @@ func main() {
 	if len(*comments) != 0 {
 		switch *comments {
 		case "markdown":
-			patcher.CommentStartChar = "<!--"
-			patcher.CommentEndChar = "-->"
+			patcher.CommentStart = "<!--"
+			patcher.CommentEnd = "-->"
 		default:
 			panic(fmt.Errorf("Unknown comment format: %s", *comments))
 		}

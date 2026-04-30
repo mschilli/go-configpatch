@@ -1,0 +1,36 @@
+#!/usr/local/bin/perl -w
+###########################################
+# release -- go-configpatch release script
+# Mike Schilli, 2026 (m@perlmeister.com)
+###########################################
+use strict;
+use Sysadm::Install qw(:all);
+
+  # Run test suite
+sysrun "go", "test";
+
+  # See if cli compiles
+sysrun "cd cli; go build; rm -f cli";
+
+  # See if example compiles
+sysrun "cd examples; go build; rm -f examples";
+
+  # everything checked in?
+sysrun "git", "diff-index", "HEAD", "--";
+
+  # Latest tag documented in Changes
+my $git_tag = `git describe --tags --abbrev=0`;
+my $changes_tag = `head -1 Changes | awk '{ print \$1 }'`;
+chomp $git_tag;
+chomp $changes_tag;
+
+if( $git_tag ne $changes_tag ) {
+    die "Changes not up to date: git=$git_tag changes=$changes_tag";
+}
+
+  # Check if latest tag points to HEAD
+my $head_tag = `git tag --points-at HEAD`;
+chomp $head_tag;
+if( $head_tag ne $git_tag ) {
+    die "Latest tag not up to date: head=$head_tag release=$git_tag";
+}
