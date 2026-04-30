@@ -1,0 +1,4 @@
+---
+mode: insert-before
+regex: (?m)^bar$
+text: HELLO

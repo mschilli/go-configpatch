@@ -1,0 +1,3 @@
+
+configpatch --eject --key=example1 --comments=markdown README.md 
+( echo "go \`\`\`"; cat examples/sudopatch.go; echo "\`\`\`" ) | configpatch --key=example1 --comments=markdown --replace=EXAMPLE1 README.md

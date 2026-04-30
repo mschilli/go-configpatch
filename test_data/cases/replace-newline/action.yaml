@@ -1,0 +1,4 @@
+---
+mode: replace
+regex: bar\n
+text: HELLO

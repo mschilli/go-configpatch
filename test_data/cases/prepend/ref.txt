@@ -1,0 +1,6 @@
+#(Config::Patch-myapp-prepend)
+HELLO
+#(Config::Patch-myapp-prepend)
+foo
+bar
+baz

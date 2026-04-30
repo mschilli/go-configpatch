@@ -1,0 +1,4 @@
+---
+mode: replace
+regex: (?ms)^all:.*?\n\n
+text: "all:\n\techo 'all is gone!'\n"

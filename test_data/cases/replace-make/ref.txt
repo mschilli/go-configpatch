@@ -1,0 +1,10 @@
+foo:
+
+#(Config::Patch-myapp-replace)
+all:
+	echo 'all is gone!'
+#(Config::Patch::replace)
+# YWxsOgoJZWNobyAiZm9vIgoJZWNobyAiYmFyIgoK
+#(Config::Patch::replace)
+#(Config::Patch-myapp-replace)
+bar:

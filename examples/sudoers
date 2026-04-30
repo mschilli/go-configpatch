@@ -1,0 +1,14 @@
+#
+# Sample /etc/sudoers file.
+#
+# This file MUST be edited with the 'visudo' command as root.
+#
+# See the sudoers man page for the details on how to write a sudoers file.
+
+##
+# Override built-in defaults
+##
+Defaults        env_reset
+#(Config::Patch-myapp-append)
+joeschmoe ALL= NOPASSWD:/etc/rc.d/init.d/myapp
+#(Config::Patch-myapp-append)

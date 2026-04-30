@@ -1,0 +1,49 @@
+#!/usr/local/bin/perl -w
+###########################################
+# mkref - Update test case with expected outcome
+# Mike Schilli, 2026 (m@perlmeister.com)
+###########################################
+use strict;
+use Config::Patch;
+use YAML qw( DumpFile );
+
+sub perl_regex_to_go;
+
+my $p = Config::Patch->new(
+    file => "in.txt",
+);
+
+my $hunk = require "./hunk.perl";
+
+my $data = {
+    mode => $hunk->{ mode },
+    regex => perl_regex_to_go( $hunk->{ regex } ),
+    text => $hunk->{ text },
+};
+
+DumpFile( "action.yaml", $data );
+
+$p->apply( $hunk );
+$p->save_as( "ref.txt" );
+
+sub perl_regex_to_go {
+    my ($re) = @_;
+
+    # stringify regex object if needed
+    $re = "" if !defined $re;
+    $re = "$re";
+
+    # match Perl canonical form: (?^flags:pattern)
+    if ($re =~ /^\(\?\^([a-z]*):(.*)\)$/s) {
+        my ($flags, $pattern) = ($1, $2);
+
+        # Go doesn't support all Perl flags; keep the common ones
+        # (m, i, s, U are supported by RE2)
+        $flags =~ s/[^misU]//g;
+
+        return $flags ? "(?$flags)$pattern" : $pattern;
+    }
+
+    # fallback: return as-is if not in canonical form
+    return $re;
+}

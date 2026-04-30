@@ -1,0 +1,4 @@
+---
+mode: insert-after
+regex: bar
+text: HELLO

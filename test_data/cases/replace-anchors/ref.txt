@@ -1,0 +1,8 @@
+foo
+#(Config::Patch-myapp-replace)
+HELLO
+#(Config::Patch::replace)
+# YmFyCg==
+#(Config::Patch::replace)
+#(Config::Patch-myapp-replace)
+baz

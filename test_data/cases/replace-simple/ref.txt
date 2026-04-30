@@ -1,0 +1,8 @@
+#(Config::Patch-myapp-replace)
+HELLO
+#(Config::Patch::replace)
+# Zm9vCg==
+#(Config::Patch::replace)
+#(Config::Patch-myapp-replace)
+bar
+baz

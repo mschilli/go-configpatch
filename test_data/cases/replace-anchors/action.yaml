@@ -1,0 +1,4 @@
+---
+mode: replace
+regex: (?m)^bar$
+text: HELLO

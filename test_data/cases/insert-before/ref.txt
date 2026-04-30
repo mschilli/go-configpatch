@@ -1,0 +1,6 @@
+foo
+#(Config::Patch-myapp-insert)
+HELLO
+#(Config::Patch-myapp-insert)
+bar
+baz

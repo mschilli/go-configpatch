@@ -1,0 +1,4 @@
+---
+mode: prepend
+regex: ''
+text: "HELLO\n"
