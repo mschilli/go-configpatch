@@ -119,38 +119,112 @@ These markers:
 
 ## API Usage
 
-### Create a Patcher
-
-```go
-patcher := patch.NewPatcher("/etc/sudoers")
+<!--(Config::Patch-apiusage-replace)-->
 ```
+package configpatch // import "github.com/mschilli/go-configpatch"
 
-### Apply a Patch
+type Patcher struct {
+	// Maintained file
+	Path string
+	// String representation
+	Data string
+	// Comment format, defaults to '#' as Start
+	CommentStart string
+	CommentEnd   string
+	// Turn on verbose screen debugging
+	Debug  bool
+	Logger *zap.Logger
+	// Positions with existing patches
+	ForbiddenZones []Interval
+	// Matcher to detect an existing marker
+	MarkerRx *regexp.Regexp
+}
+    Apply hunks to files reversibly
 
-```go
-patcher.Apply(hunk)
-patcher.Save()
+func NewPatcher() *Patcher
+    Create a new Patcher object. Subsequent Init() required before use.
+
+func (p *Patcher) Apply(h *Hunk) error
+    Apply a hunk in the mode specified
+
+func (p *Patcher) Eject(key string) int
+    Back out the hunk applied earlier under the given key
+
+func (p *Patcher) FullLineMatch(s string, re *regexp.Regexp) []Interval
+    Internal function to find the surrounding characters for a given regex match
+    in the text, to cover full lines.
+
+func (p *Patcher) Init(path string) error
+    Point the Patcher to a file
+
+func (p *Patcher) Patched(key string) bool
+    Check if a file has already been patched by the given key
+
+func (p *Patcher) Save() error
+    Write the file back to the original location
+
+func (p *Patcher) SaveAs(path string) error
+    Write the file to disk under a new name
+
+func (p *Patcher) Traverse(
+	patchCB func(*Patcher, *Hunk),
+	textCB func(*Patcher, string),
+) bool
+    Traverse the file and run callbacks on hunks and regular text sections
+
+package configpatch // import "github.com/mschilli/go-configpatch"
+
+type Hunk struct {
+	// Key of this patch hunk, only one key per patch
+	Key string
+	// How to apply (append, replace, etc.)
+	Mode string
+	// Text to apply
+	Text string
+	// Regex to find where to apply the hunk (replace mode)
+	Regex *regexp.Regexp
+	// Once applied, here's text index positions
+	PosFrom  int
+	PosTo    int
+	AsString string
+	Logger   *zap.Logger
+	// Comment out configpatch's markers (set by Patcher)
+	CommentStart string
+	CommentEnd   string
+}
+    A hunk of patch data
+
+func NewHunk() *Hunk
+    Create a new hunk. You needs to set Key and Mode fields afterwards before
+    applying it.
+
+func (h *Hunk) Freeze(s string) string
+    Base64-encode with headers
+
+func (h *Hunk) PatchMarker() string
+    Patch hunk header
+
+func (h *Hunk) ReplaceMarker() string
+    Header inside of patch for replacement data
+
+func (h *Hunk) ReplaceStringExtract() (string, string, error)
+    Find the replacement string in a patch. Return the thawed replacement string
+    and the hunk text with the replacement section removed.
+
+func (h *Hunk) ReplaceStringHide(s string) string
+    Encoding of previous content in replace mode
+
+func (h *Hunk) StringGenerate() string
+    Full hunk as text to insert
+
+func (h *Hunk) Thaw(enc string) (string, error)
+    Base64-decode with headers
+
 ```
-
-### Remove patch
-
-```go
-patcher.Eject("myapp")
-patcher.Save()
-```
-
-### Save to different file
-
-```go
-patcher.SaveAs("newfile.dat")
-```
-
-### Inspect current data
-
-```go
-data := patcher.Data
-fmt.Println(data)
-```
+<!--(Config::Patch::replace)-->
+<!-- QVBJVVNBR0UK-->
+<!--(Config::Patch::replace)-->
+<!--(Config::Patch-apiusage-replace)-->
 
 ---
 

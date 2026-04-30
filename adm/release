@@ -13,6 +13,16 @@ open my $pipe, "|-", "configpatch --key=example1 --comments=markdown --replace=E
 print $pipe $code;
 close $pipe;
 
+  # APIUSAGE
+my $docs = "```\n" .
+`go doc --all github.com/mschilli/go-configpatch.Patcher;` . 
+`go doc --all github.com/mschilli/go-configpatch.Hunk;` . 
+"```\n";
+sysrun qw(configpatch --eject --key=apiusage --comments=markdown README.md );
+open my $pipe, "|-", "configpatch --key=apiusage --comments=markdown --replace=APIUSAGE README.md";
+print $pipe $docs;
+close $pipe;
+
   # Run test suite
 sysrun "go", "test";
 
