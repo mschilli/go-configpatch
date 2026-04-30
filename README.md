@@ -16,7 +16,7 @@ Defaults        env_reset
 Now with configpatch, you can add a user in a reversible way:
 
 <!--(Config::Patch-example1-replace)-->
-go ```
+```go
 package main
 
 import (
