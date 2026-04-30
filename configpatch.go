@@ -15,26 +15,35 @@ type Interval struct {
 	To   int
 }
 
+// Apply hunks to files reversibly
 type Patcher struct {
-	Path             string
-	Data             string
-	MarkerRx         *regexp.Regexp
+	// Maintained file
+	Path         string
+	// String representation
+	Data         string
+	// Comment format, defaults to '#' as Start
 	CommentStart string
 	CommentEnd   string
-	Debug            bool
-	Logger           *zap.Logger
-	ForbiddenZones   []Interval
+	// Turn on verbose screen debugging
+	Debug  bool
+	Logger *zap.Logger
+	// Positions with existing patches
+	ForbiddenZones []Interval
+	// How to detect an existing marker
+	MarkerRx     *regexp.Regexp
 }
 
+// Create a new Patcher object
 func NewPatcher() *Patcher {
 	patcher := Patcher{
 		CommentStart: "#",
-		Debug:            false,
-		Logger:           zap.Must(zap.NewProduction()),
+		Debug:        false,
+		Logger:       zap.Must(zap.NewProduction()),
 	}
 	return &patcher
 }
 
+// Point the Patcher to a file
 func (p *Patcher) Init(path string) error {
 	p.Path = path
 	data, err := os.ReadFile(path)
@@ -69,6 +78,7 @@ func (p *Patcher) Init(path string) error {
 	return nil
 }
 
+// Traverse the file and run callbacks on hunks and regular text sections
 func (p *Patcher) Traverse(
 	patchCB func(*Patcher, *Hunk),
 	textCB func(*Patcher, string),
@@ -105,18 +115,18 @@ func (p *Patcher) Traverse(
 			fullMatch := match[0]
 
 			h := &Hunk{
-				CommentStart: p.CommentStart,
-				CommentEnd:   p.CommentEnd,
-				Key:              match[1],
-				Mode:             match[2],
-				Text:             patchText,
-				PosFrom:          startPos,
-				PosTo:            endPos,
-				Header:           header,
-				ContentPosFrom:   startPos + len(fullMatch) + 1,
-				ContentPosTo:     endPos - len(fullMatch),
-				AsString:         p.Data[startPos : endPos+1],
-				Logger:           p.Logger,
+				CommentStart:   p.CommentStart,
+				CommentEnd:     p.CommentEnd,
+				Key:            match[1],
+				Mode:           match[2],
+				Text:           patchText,
+				PosFrom:        startPos,
+				PosTo:          endPos,
+				Header:         header,
+				ContentPosFrom: startPos + len(fullMatch) + 1,
+				ContentPosTo:   endPos - len(fullMatch),
+				AsString:       p.Data[startPos : endPos+1],
+				Logger:         p.Logger,
 			}
 
 			patchCB(p, h)
@@ -147,14 +157,17 @@ func (p *Patcher) Traverse(
 	return true
 }
 
+// Write the file back to the original location
 func (p *Patcher) Save() error {
 	return p.SaveAs(p.Path)
 }
 
+// Write the file to disk under a new name
 func (p *Patcher) SaveAs(path string) error {
 	return os.WriteFile(path, []byte(p.Data), 0644)
 }
 
+// Apply a hunk in the mode specified
 func (p *Patcher) Apply(h *Hunk) error {
 	h.CommentStart = p.CommentStart
 	h.CommentEnd = p.CommentEnd
@@ -188,6 +201,7 @@ func (p *Patcher) Apply(h *Hunk) error {
 	return nil
 }
 
+// Back out the hunk applied earlier under the given key
 func (p *Patcher) Eject(key string) int {
 	processed := ""
 	ejected := 0
@@ -195,8 +209,8 @@ func (p *Patcher) Eject(key string) int {
 	p.Traverse(
 		func(p *Patcher, h *Hunk) {
 			p.Logger.Debug("Traverse, found hunk",
-			    zap.String("Key", h.Key),
-			    zap.String("Mode", h.Mode),
+				zap.String("Key", h.Key),
+				zap.String("Mode", h.Mode),
 			)
 			if h.Key != key {
 				// Not our patch, keep
@@ -368,16 +382,17 @@ func intersectsAny(zones []Interval, a, b int) bool {
 	return false
 }
 
-// Hunk of patch data
+// A hunk of patch data
 type Hunk struct {
-	// Comment out configpatch's markers
-	CommentStart string
-	CommentEnd   string
 	// Key of this patch hunk, only one key per patch
 	Key            string
+	// How to apply (append, replace, etc.)
 	Mode           string
+	// Text to apply
 	Text           string
+	// Regex to find where to apply the hunk (replace mode)
 	Regex          *regexp.Regexp
+	// Once applied, here's text index positions
 	PosFrom        int
 	PosTo          int
 	Header         string
@@ -385,12 +400,16 @@ type Hunk struct {
 	ContentPosTo   int
 	AsString       string
 	Logger         *zap.Logger
+	// Comment out configpatch's markers (set by Patcher)
+	CommentStart string
+	CommentEnd   string
 }
 
+// Create a new hunk. You needs to set Key and Mode fields afterwards before applying it.
 func NewHunk() *Hunk {
 	h := Hunk{
 		CommentStart: "#",
-		Logger:           zap.Must(zap.NewProduction()),
+		Logger:       zap.Must(zap.NewProduction()),
 	}
 
 	return &h
@@ -466,58 +485,4 @@ func (h *Hunk) ReplaceStringHide(s string) string {
 		h.CommentEnd +
 		"\n" +
 		h.ReplaceMarker()
-}
-
-// Comment, uncomment, and detect patch lines or ranges thereof
-type Marker struct {
-	CommentStartMarker string
-	CommentEndMarker   string
-	CommentModFunc     func(string, bool) string
-	CommentCheckFunc   func(string) bool
-	insideComment      bool
-}
-
-func NewMarker() *Marker {
-	m := Marker{
-		CommentStartMarker: "#",
-	}
-
-	m.CommentCheckFunc = m.IsCommentSingle
-	m.CommentModFunc = m.CommentModSingle
-
-	return &m
-}
-
-// Public interface
-func (m *Marker) IsComment(s string) bool {
-	return m.CommentCheckFunc(s)
-}
-
-func (m *Marker) Comment(s string) string {
-	return m.CommentModFunc(s, false)
-}
-
-func (m *Marker) UnComment(s string) string {
-	return m.CommentModFunc(s, true)
-}
-
-// Comment or uncomment a single line with a leading sequence (like "#" or "//")
-func (m *Marker) CommentModSingle(s string, uncomment bool) string {
-	if uncomment {
-		re := regexp.MustCompile(fmt.Sprintf(`(?m)^%s`,
-			regexp.QuoteMeta(m.CommentStartMarker)))
-		return re.ReplaceAllString(s, "")
-	}
-
-	re := regexp.MustCompile(`(?m)^`)
-	return re.ReplaceAllString(s, m.CommentStartMarker)
-}
-
-func (m *Marker) IsCommentSingle(s string) bool {
-	return strings.HasPrefix(s, m.CommentStartMarker)
-}
-
-// For comments spanning several lines, are we still within a comment?
-func (m *Marker) IsCommentMulti(s string) bool {
-	return true
 }

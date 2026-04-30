@@ -6,6 +6,13 @@
 use strict;
 use Sysadm::Install qw(:all);
 
+  # Patch README.md
+my $code = "```go\n" . slurp("examples/sudopatch.go") . "```\n";
+sysrun qw(configpatch --eject --key=example1 --comments=markdown README.md );
+open my $pipe, "|-", "configpatch --key=example1 --comments=markdown --replace=EXAMPLE1 README.md";
+print $pipe $code;
+close $pipe;
+
   # Run test suite
 sysrun "go", "test";
 

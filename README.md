@@ -158,6 +158,13 @@ fmt.Println(data)
 
 ---
 
+### `append`
+
+Insert at the end. The hunk of text in the patch is added to the file after
+its last line.
+
+---
+
 ### `prepend`
 
 Insert at beginning. The hunk of text in the patch is added to the file before
