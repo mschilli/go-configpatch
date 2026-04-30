@@ -29,11 +29,11 @@ type Patcher struct {
 	Logger *zap.Logger
 	// Positions with existing patches
 	ForbiddenZones []Interval
-	// How to detect an existing marker
+	// Matcher to detect an existing marker
 	MarkerRx     *regexp.Regexp
 }
 
-// Create a new Patcher object
+// Create a new Patcher object. Subsequent Init() required before use.
 func NewPatcher() *Patcher {
 	patcher := Patcher{
 		CommentStart: "#",
@@ -231,6 +231,7 @@ func (p *Patcher) Eject(key string) int {
 	return ejected
 }
 
+// Check if a file has already been patched by the given key
 func (p *Patcher) Patched(key string) bool {
 	found := false
 
@@ -246,6 +247,7 @@ func (p *Patcher) Patched(key string) bool {
 	return found
 }
 
+// Internal function to apply patches in various modes
 func (p *Patcher) patchByWedge(h *Hunk, replace string, mode string, after bool) error {
 	p.Logger.Debug("patchByWedge",
 		zap.String("text", h.Text), zap.String("replace", replace),
@@ -318,6 +320,8 @@ func (p *Patcher) patchByWedge(h *Hunk, replace string, mode string, after bool)
 	return nil
 }
 
+// Internal function to find the surrounding characters for a given regex match
+// in the text, to cover full lines.
 func (p *Patcher) FullLineMatch(s string, re *regexp.Regexp) []Interval {
 	p.Logger.Debug("FullLineMatch of",
 		zap.String("text", s), zap.String("re", re.String()))
@@ -405,17 +409,20 @@ func NewHunk() *Hunk {
 	return &h
 }
 
+// Patch hunk header
 func (h *Hunk) PatchMarker() string {
 	mode, _, _ := strings.Cut(h.Mode, "-")
 	return fmt.Sprintf("%s(Config::Patch-%s-%s)%s\n",
 		h.CommentStart, h.Key, mode, h.CommentEnd)
 }
 
+// Header inside of patch for replacement data
 func (h *Hunk) ReplaceMarker() string {
 	return fmt.Sprintf("%s(Config::Patch::replace)%s\n",
 		h.CommentStart, h.CommentEnd)
 }
 
+// Full hunk as text to insert
 func (h *Hunk) StringGenerate() string {
 	if !strings.HasSuffix(h.Text, "\n") {
 		h.Text += "\n"
@@ -424,6 +431,7 @@ func (h *Hunk) StringGenerate() string {
 	return m + h.Text + m
 }
 
+// Base64-encode with headers
 func (h *Hunk) Freeze(s string) string {
 	enc := base64.StdEncoding.EncodeToString([]byte(s))
 	re := regexp.MustCompile(`(?m)^`)
@@ -431,6 +439,7 @@ func (h *Hunk) Freeze(s string) string {
 	return enc
 }
 
+// Base64-decode with headers
 func (h *Hunk) Thaw(enc string) (string, error) {
 	re := regexp.MustCompile(`(?m)^` + h.CommentStart + " ")
 	enc = re.ReplaceAllString(enc, "")
@@ -468,6 +477,7 @@ func (h *Hunk) ReplaceStringExtract() (string, string, error) {
 	return thawed, cleaned, err
 }
 
+// Encoding of previous content in replace mode
 func (h *Hunk) ReplaceStringHide(s string) string {
 	return h.ReplaceMarker() +
 		h.CommentStart + " " +
