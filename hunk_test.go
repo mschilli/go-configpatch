@@ -7,8 +7,8 @@ import (
 
 func TestHunkMarker(t *testing.T) {
 	h := &Hunk{
-		Key:              "mykey",
-		Mode:             "replace",
+		Key:          "mykey",
+		Mode:         "replace",
 		CommentStart: "#",
 	}
 
@@ -21,9 +21,9 @@ func TestHunkMarker(t *testing.T) {
 
 func TestHunkGenerateBasic(t *testing.T) {
 	h := &Hunk{
-		Key:              "k",
-		Mode:             "append",
-		Text:             "HELLO",
+		Key:          "k",
+		Mode:         "append",
+		Text:         "HELLO",
 		CommentStart: "#",
 	}
 
@@ -41,9 +41,9 @@ func TestHunkGenerateBasic(t *testing.T) {
 
 func TestHunkGenerateAddsNewline(t *testing.T) {
 	h := &Hunk{
-		Key:              "k",
-		Mode:             "append",
-		Text:             "HELLO", // no newline
+		Key:          "k",
+		Mode:         "append",
+		Text:         "HELLO", // no newline
 		CommentStart: "#",
 	}
 

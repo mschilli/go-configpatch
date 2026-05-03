@@ -302,20 +302,6 @@ hunk := patch.NewHunk(patch.Hunk{
 
 ---
 
-### `update`
-
-Update an existing patch in place:
-
-```go
-hunk := patch.NewHunk(patch.Hunk{
-    Key:  "myapp",
-    Mode: "update",
-    Text: "foo=woot\n",
-})
-```
-
----
-
 ## Regex
 
 All match locations are determined via Go regex:
@@ -362,11 +348,15 @@ This is a Go port of the original Config::Patch CPAN module
 Its implementation is meant to provide complete functional parity, except
 for the following:
 
-* Config::Patch won't add a trailing "\n" to the hunk text in append or prepend mode.
-  This is a bug in the original, fixed in the Go port.
+* Config::Patch won't add a trailing "\n" to the hunk text in append or prepend
+  mode. This is a bug in the original, fixed in the Go port.
 
 * Custom comment formats are new to the Go port, they might find their way to the
   original as time allows (cough, cough).
+
+* 'update' in the original is somewhat problematic, as a replacement, for
+  example, can't possibly know the originally encoded (hidden) string. To
+  rule out any confusion, we go back to eject/apply.
 
 ## Author
 

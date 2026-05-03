@@ -1,4 +1,3 @@
-* implement update()/comment_out()
 * Check that keys containing "-" are illegal
-* Go doc output >README.md
-* TODO markers in code
+* TODO sections in code
+* allow multiple sections with replace?

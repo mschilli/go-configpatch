@@ -10,10 +10,11 @@ import (
 	"regexp"
 )
 
-const Version = "0.01"
+const Version = "0.02"
 
 func main() {
 	append := flag.Bool("append", false, "append")
+	refresh := flag.Bool("refresh", false, "eject before reapplying")
 	eject := flag.Bool("eject", false, "eject a patch")
 	replace := flag.String("replace", "", "replace by regex")
 	key := flag.String("key", "", "patch key")
@@ -70,6 +71,11 @@ func main() {
 
 	h := &configpatch.Hunk{
 		Key: *key,
+	}
+
+	if *refresh {
+		count := patcher.Eject(h.Key)
+		fmt.Printf("%d patches ejected\n", count)
 	}
 
 	if *append {

@@ -18,9 +18,9 @@ type Interval struct {
 // Apply hunks to files reversibly
 type Patcher struct {
 	// Maintained file
-	Path         string
+	Path string
 	// String representation
-	Data         string
+	Data string
 	// Comment format, defaults to '#' as Start
 	CommentStart string
 	CommentEnd   string
@@ -30,7 +30,7 @@ type Patcher struct {
 	// Positions with existing patches
 	ForbiddenZones []Interval
 	// Matcher to detect an existing marker
-	MarkerRx     *regexp.Regexp
+	MarkerRx *regexp.Regexp
 }
 
 // Create a new Patcher object. Subsequent Init() required before use.
@@ -112,15 +112,15 @@ func (p *Patcher) Traverse(
 			endPos = pos - 1
 
 			h := &Hunk{
-				CommentStart:   p.CommentStart,
-				CommentEnd:     p.CommentEnd,
-				Key:            match[1],
-				Mode:           match[2],
-				Text:           patchText,
-				PosFrom:        startPos,
-				PosTo:          endPos,
-				AsString:       p.Data[startPos : endPos+1],
-				Logger:         p.Logger,
+				CommentStart: p.CommentStart,
+				CommentEnd:   p.CommentEnd,
+				Key:          match[1],
+				Mode:         match[2],
+				Text:         patchText,
+				PosFrom:      startPos,
+				PosTo:        endPos,
+				AsString:     p.Data[startPos : endPos+1],
+				Logger:       p.Logger,
 			}
 
 			patchCB(p, h)
@@ -165,6 +165,10 @@ func (p *Patcher) Apply(h *Hunk) error {
 	h.CommentStart = p.CommentStart
 	h.CommentEnd = p.CommentEnd
 
+	if p.Patched(h.Key) {
+		return fmt.Errorf("Already patched with key %v", h.Key)
+	}
+
 	p.Logger.Debug("Apply hunk to",
 		zap.String("path", p.Path), zap.String("mode", h.Mode))
 
@@ -184,8 +188,6 @@ func (p *Patcher) Apply(h *Hunk) error {
 
 	case "insert-after":
 		return p.patchByWedge(h, h.Text, "insert", true)
-
-	// TODO: update, comment_out
 
 	default:
 		return fmt.Errorf("unknown mode: %s", h.Mode)
@@ -382,18 +384,18 @@ func intersectsAny(zones []Interval, a, b int) bool {
 // A hunk of patch data
 type Hunk struct {
 	// Key of this patch hunk, only one key per patch
-	Key            string
+	Key string
 	// How to apply (append, replace, etc.)
-	Mode           string
+	Mode string
 	// Text to apply
-	Text           string
+	Text string
 	// Regex to find where to apply the hunk (replace mode)
-	Regex          *regexp.Regexp
+	Regex *regexp.Regexp
 	// Once applied, here's text index positions
-	PosFrom        int
-	PosTo          int
-	AsString       string
-	Logger         *zap.Logger
+	PosFrom  int
+	PosTo    int
+	AsString string
+	Logger   *zap.Logger
 	// Comment out configpatch's markers (set by Patcher)
 	CommentStart string
 	CommentEnd   string

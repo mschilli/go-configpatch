@@ -218,6 +218,27 @@ baz
 	StrExp(t, path, h.Mode, p.Data, ref)
 }
 
+func TestDouble(t *testing.T) {
+	p := NewPatcher()
+	path := "test_data/append/in.txt"
+	err := p.Init(path)
+	if err != nil {
+		panic(err)
+	}
+
+	h := NewHunk()
+	h.Text = "HELLO\n"
+	h.Mode = "append"
+	h.Key = "myapp"
+
+	p.Apply(h)
+
+	err = p.Apply(h)
+	if err == nil {
+		panic("No error on double patch")
+	}
+}
+
 func TestMarkdown(t *testing.T) {
 	p := NewPatcher()
 	path := "test_data/append/in.txt"
