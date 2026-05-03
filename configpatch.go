@@ -15,6 +15,8 @@ type Interval struct {
 	To   int
 }
 
+const Version = "0.0.4"
+
 // Apply hunks to files reversibly
 type Patcher struct {
 	// Maintained file
@@ -65,9 +67,16 @@ func (p *Patcher) Init(path string) error {
 		"Config::Patch",
 	))
 
+	p.parse()
+
+	return nil
+}
+
+// reset forbidden zones
+func (p *Patcher) parse() {
 	// Mark forbidden zones
 	p.ForbiddenZones = []Interval{}
-	p.Logger.Debug("Init parsing of", zap.String("path", path))
+	p.Logger.Debug("Zone parsing of", zap.String("path", p.Path))
 	p.Traverse(
 		func(p *Patcher, h *Hunk) {
 			p.Logger.Debug("Add forbidden zone",
@@ -77,8 +86,6 @@ func (p *Patcher) Init(path string) error {
 		},
 		func(p *Patcher, s string) {},
 	)
-
-	return nil
 }
 
 // Traverse the file and run callbacks on hunks and regular text sections
@@ -172,6 +179,8 @@ func (p *Patcher) Apply(h *Hunk) error {
 		return fmt.Errorf("Already patched with key %v", h.Key)
 	}
 
+	defer p.parse() // reset forbidden zones
+
 	p.Logger.Debug("Apply hunk to",
 		zap.String("path", p.Path), zap.String("mode", h.Mode))
 
@@ -233,6 +242,9 @@ func (p *Patcher) Eject(key string) int {
 	)
 
 	p.Data = processed
+
+	p.parse() // reset forbidden zones
+
 	return ejected
 }
 

@@ -1,4 +1,9 @@
 all:
 
+DIR=../../homebrew-github/projects/configpatch/
+
 install:
-	cp cli.go ../../homebrew-github/projects/configpatch/configpatch.go
+	cp cli.go $(DIR)/configpatch.go
+
+diff:
+	diff cli.go $(DIR)/configpatch.go

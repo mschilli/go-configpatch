@@ -10,7 +10,7 @@ import (
 	"regexp"
 )
 
-const Version = "0.02"
+const Version = "0.0.4"
 
 func main() {
 	append := flag.Bool("append", false, "append")
@@ -31,7 +31,7 @@ func main() {
 	flag.Parse()
 
 	if *version {
-		fmt.Printf("%s\n", Version)
+		fmt.Printf("%s %s\n", Version, configpatch.Version)
 		return
 	}
 
