@@ -19,7 +19,7 @@ my $docs = "```\n" .
 `go doc --all github.com/mschilli/go-configpatch.Hunk;` . 
 "```\n";
 sysrun qw(configpatch --eject --key=apiusage --comments=markdown README.md );
-open my $pipe, "|-", "configpatch --key=apiusage --comments=markdown --replace=APIUSAGE README.md";
+open $pipe, "|-", "configpatch --key=apiusage --comments=markdown --replace=APIUSAGE README.md";
 print $pipe $docs;
 close $pipe;
 
