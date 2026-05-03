@@ -67,8 +67,11 @@ func (p *Patcher) Init(path string) error {
 
 	// Mark forbidden zones
 	p.ForbiddenZones = []Interval{}
+	p.Logger.Debug("Init parsing of", zap.String("path", path))
 	p.Traverse(
 		func(p *Patcher, h *Hunk) {
+			p.Logger.Debug("Add forbidden zone",
+				zap.Int("from", h.PosFrom), zap.Int("to", h.PosTo))
 			p.ForbiddenZones = append(p.ForbiddenZones,
 				Interval{From: h.PosFrom, To: h.PosTo})
 		},

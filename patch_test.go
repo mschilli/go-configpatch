@@ -239,6 +239,31 @@ func TestDouble(t *testing.T) {
 	}
 }
 
+func TestRefresh(t *testing.T) {
+	p := NewPatcher()
+	// p.Debug = true
+	path := "test_data/cases/replace-simple/ref.txt"
+	err := p.Init(path)
+	if err != nil {
+		panic(err)
+	}
+
+	exp := p.Data
+
+	count := p.Eject("myapp")
+	IntExp(t, path, "eject", count, 1)
+
+	h := NewHunk()
+	h.Text = "HELLO\n"
+	h.Mode = "replace"
+	h.Regex = regexp.MustCompile("(?m)^foo$")
+	h.Key = "myapp"
+
+	p.Apply(h)
+
+	StrExp(t, path, "refresh", p.Data, exp)
+}
+
 func TestMarkdown(t *testing.T) {
 	p := NewPatcher()
 	path := "test_data/append/in.txt"
